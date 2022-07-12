@@ -1,46 +1,56 @@
-const albumWrapper = document.createElement('div');
-albumWrapper.classList.add('album-wrapper')
+let queryParams = document.location.search;
+let urlParams = new URLSearchParams(queryParams);
+let albumId = urlParams.get('album_id');
+let albumTitle = urlParams.get('album_title');
+let userId = urlParams.get('user_id');
+let userName = urlParams.get('user_name');
 
-const mainWrapper = document.querySelector('#main-wrapper');
-mainWrapper.append(albumWrapper);
+console.log(albumId);
+console.log(albumTitle);
+console.log(userId);
+console.log(userName);
 
+// fetch('https://jsonplaceholder.typicode.com/albums/' + albumId)
+//   .then(res => res.json())
+//   .then(album => {
+//     console.log(album);
+//   })
 
-function callAlbum(){
-fetch('https://jsonplaceholder.typicode.com/albums?_limit=50')
-    .then(res => res.json())
-    .then(albums => {
-        albums.map(album => {
-        const albumItem = document.createElement('div');
-        albumItem.classList.add('album-item');
-        albumWrapper.append(albumItem);
+// fetch('https://jsonplaceholder.typicode.com/users/' + userId)
+//   .then(res => res.json())
+//   .then(user => {
+//     console.log(user.name);
+//   })
 
-        let albumTitle = document.createElement('h2');
-        albumTitle.classList.add('album-title');
-        albumTitle.textContent = album.title;
+fetch(`https://jsonplaceholder.typicode.com/albums/${albumId}/photos`)
+  .then(res => res.json())
+  .then(photos => {
+    let albumWrapper = document.querySelector('#album-wrapper');
 
-        let albumAuthor = document.createElement('p');
-        albumAuthor.classList.add('album-author');
+    if (photos.length > 0) {
+      let albumTitleElement = document.createElement('h1');
+      albumTitleElement.classList.add('album-title');
+      albumTitleElement.textContent = albumTitle;
 
-        albumItem.append(albumTitle, albumAuthor);
-        fetch('https://jsonplaceholder.typicode.com/users/' + album.userId)
-        .then(res => res.json())
-        .then(author => {
-          albumAuthor.innerHTML = `Author: <a href="https://jsonplaceholder.typicode.com/users/${album.userId}">${author.name}</a>`;
-        })
+      let albumAuthorElement = document.createElement('span');
+      albumAuthorElement.classList.add('album-author');
+      albumAuthorElement.innerHTML = `<strong>Album author:</strong> <a href="./user.html?user_id=${userId}">${userName}</a>`;
 
-        fetch(`https://jsonplaceholder.typicode.com/albums/${album.userId}/photos`)
-        .then(res => res.json())
-        .then(photos => {
-            photos.map(photo => {
-                let photoItem = document.createElement('img');
-                photoItem.classList.add('album-photos')
-                photoItem.src = photo.url;
-                photoItem.innerHTML = `<a href="${photo.url}">Photos: ${photo.url}</a>`;
-                albumItem.append(photoItem)
-            })
-        })
-        })
-    })
-}
+      let albumPhotos = document.createElement('div');
+      albumPhotos.classList.add('album-photos');
 
-callAlbum();
+      albumWrapper.append(albumTitleElement, albumAuthorElement, albumPhotos);
+
+      photos.map(photo => {
+        let imageElement = document.createElement('img');
+        imageElement.src = photo.thumbnailUrl;
+        imageElement.classList.add('album-image');
+        imageElement.setAttribute('alt', photo.title);
+
+        albumPhotos.prepend(imageElement);
+      })
+    } else {
+      albumWrapper.innerHTML = `<h1>No albums :(</h1>
+                                <p>Try <a href="./albums.html">here</a></p>`;
+    }
+  })
